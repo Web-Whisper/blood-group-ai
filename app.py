@@ -109,11 +109,37 @@ Reference: 150,000–450,000
 - High WBC (>11,000): Infection sign  
 """)
 
-    # FINAL RESULT
-    if hb_status=="Normal" and rbc_status=="Normal" and wbc_status=="Normal" and plt_status=="Normal":
-        st.success("✅ Note: Yeh report bilkul normal hai.")
-    else:
-        st.warning("⚠️ Note: Kuch values abnormal hain. Doctor se consult karein.")
+    # -----------------------------
+# SMART FINAL SUMMARY
+# -----------------------------
+
+issues = []
+
+if hb_status != "Normal":
+    issues.append(f"Hemoglobin {hb_status}")
+
+if rbc_status != "Normal":
+    issues.append(f"RBC {rbc_status}")
+
+if wbc_status != "Normal":
+    issues.append(f"WBC {wbc_status}")
+
+if plt_status != "Normal":
+    issues.append(f"Platelets {plt_status}")
+
+st.subheader("🧾 Final Assessment")
+
+if len(issues) == 0:
+    st.success("✅ Aapki tamam values normal range mein hain. Report bilkul theek hai.")
+
+elif len(issues) == 1:
+    st.warning(f"⚠️ Sirf ek issue detect hua: {issues[0]}. Behtar hai monitoring rakhein.")
+
+elif len(issues) == 2:
+    st.warning(f"⚠️ Multiple issues detect huay: {', '.join(issues)}. Doctor se consult karein.")
+
+else:
+    st.error(f"🚨 Serious condition: {', '.join(issues)} abnormal hain. Jaldi doctor se rabta karein.")
 
     # -----------------------------
     # GRAPH
