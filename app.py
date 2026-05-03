@@ -74,26 +74,12 @@ if st.button("Analyze Report"):
     report = f"""
 **Hemoglobin (Hb) - {hb} g/dL ({hb_status})**  
 Yeh khoon mein oxygen le janay wali protein hai.  
-Agar yeh 12 se kam ho to anemia ho sakta hai.  
-Reference: Male (13.5–17.5), Female (12.0–15.5)
-
----
 
 **RBC Count - {rbc} million/µL ({rbc_status})**  
-Yeh surkh khoon ke khaliye hain.  
-Reference: Male (4.5–5.5), Female (4.0–5.0)
-
----
 
 **WBC Count - {wbc} cells/µL ({wbc_status})**  
-Yeh immune system ka hissa hain. Infection mein barh jate hain.  
-Reference: 4,500–11,000
-
----
 
 **Platelets - {platelets}/cumm ({plt_status})**  
-Yeh clotting mein madad karte hain.  
-Reference: 150,000–450,000
 """
 
     st.markdown(report)
@@ -108,38 +94,6 @@ Reference: 150,000–450,000
 - Low Hemoglobin (<12): Iron deficiency  
 - High WBC (>11,000): Infection sign  
 """)
-
-    # -----------------------------
-# SMART FINAL SUMMARY
-# -----------------------------
-
-issues = []
-
-if hb_status != "Normal":
-    issues.append(f"Hemoglobin {hb_status}")
-
-if rbc_status != "Normal":
-    issues.append(f"RBC {rbc_status}")
-
-if wbc_status != "Normal":
-    issues.append(f"WBC {wbc_status}")
-
-if plt_status != "Normal":
-    issues.append(f"Platelets {plt_status}")
-
-st.subheader("🧾 Final Assessment")
-
-if len(issues) == 0:
-    st.success("✅ Aapki tamam values normal range mein hain. Report bilkul theek hai.")
-
-elif len(issues) == 1:
-    st.warning(f"⚠️ Sirf ek issue detect hua: {issues[0]}. Behtar hai monitoring rakhein.")
-
-elif len(issues) == 2:
-    st.warning(f"⚠️ Multiple issues detect huay: {', '.join(issues)}. Doctor se consult karein.")
-
-else:
-    st.error(f"🚨 Serious condition: {', '.join(issues)} abnormal hain. Jaldi doctor se rabta karein.")
 
     # -----------------------------
     # GRAPH
@@ -158,6 +112,34 @@ else:
         st.subheader("🧬 Predicted Blood Group")
         st.success(pred[0])
 
+    # -----------------------------
+    # SMART FINAL SUMMARY (FIXED)
+    # -----------------------------
+    issues = []
+
+    if hb_status != "Normal":
+        issues.append(f"Hemoglobin {hb_status}")
+
+    if rbc_status != "Normal":
+        issues.append(f"RBC {rbc_status}")
+
+    if wbc_status != "Normal":
+        issues.append(f"WBC {wbc_status}")
+
+    if plt_status != "Normal":
+        issues.append(f"Platelets {plt_status}")
+
+    st.subheader("🧾 Final Assessment")
+
+    if len(issues) == 0:
+        st.success("✅ Aapki tamam values normal range mein hain. Report theek hai.")
+    elif len(issues) == 1:
+        st.warning(f"⚠️ Sirf ek issue: {issues[0]}")
+    elif len(issues) == 2:
+        st.warning(f"⚠️ Multiple issues: {', '.join(issues)}")
+    else:
+        st.error(f"🚨 Serious condition: {', '.join(issues)}")
+
 # -----------------------------
 # CHATBOT
 # -----------------------------
@@ -174,7 +156,7 @@ if st.button("Ask"):
             st.write("Agar sab values normal hain to report theek hai.")
 
         elif "hb" in q or "hemoglobin" in q:
-            st.write("Hemoglobin oxygen carry karta hai. Low ho to anemia hota hai.")
+            st.write("Hemoglobin oxygen carry karta hai.")
 
         elif "platelets" in q:
             st.write("Platelets clotting ke liye hotay hain.")
@@ -183,4 +165,4 @@ if st.button("Ask"):
             st.write("WBC infection se fight karta hai.")
 
         else:
-            st.write("General advice: Doctor se consult karein.")
+            st.write("Doctor se consult karein.")
