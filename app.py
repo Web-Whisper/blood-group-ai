@@ -4,9 +4,13 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
 
-st.title("🧠 AI Blood Report Analyzer + Chatbot")
+st.set_page_config(page_title="AI Blood Report System", layout="centered")
 
-# Load dataset
+st.title("🧠 AI Blood Report Analyzer + Blood Group Predictor")
+
+# -----------------------------
+# MODEL
+# -----------------------------
 df = pd.read_csv("lab_dataset.csv")
 
 X = df.drop("blood_group", axis=1)
@@ -16,9 +20,9 @@ model = RandomForestClassifier()
 model.fit(X, y)
 
 # -----------------------------
-# INPUT SECTION
+# INPUT
 # -----------------------------
-st.header("🔢 Enter Lab Values")
+st.header("🔢 Enter Your Lab Values")
 
 hb = st.number_input("Hemoglobin (g/dL)")
 rbc = st.number_input("RBC Count (million/µL)")
@@ -26,95 +30,131 @@ wbc = st.number_input("WBC Count (cells/µL)")
 platelets = st.number_input("Platelets (/cumm)")
 
 # -----------------------------
-# ANALYSIS
+# ANALYZE BUTTON
 # -----------------------------
 if st.button("Analyze Report"):
 
-    st.subheader("📊 Interpretation")
-
-    report_status = "Normal"
+    st.subheader("📊 Results ki Tafseel (Interpretation)")
 
     # Hemoglobin
     if hb < 12:
-        st.warning("Low Hemoglobin → Anemia")
-        report_status = "Issue"
+        hb_status = "Low"
     elif hb <= 17.5:
-        st.success("Hemoglobin Normal")
+        hb_status = "Normal"
     else:
-        st.error("High Hemoglobin")
-        report_status = "Issue"
+        hb_status = "High"
 
     # RBC
     if rbc < 4:
-        st.warning("Low RBC")
-        report_status = "Issue"
+        rbc_status = "Low"
     elif rbc <= 5.5:
-        st.success("RBC Normal")
+        rbc_status = "Normal"
     else:
-        st.error("High RBC")
-        report_status = "Issue"
+        rbc_status = "High"
 
     # WBC
     if wbc < 4500:
-        st.warning("Low WBC")
-        report_status = "Issue"
+        wbc_status = "Low"
     elif wbc <= 11000:
-        st.success("WBC Normal")
+        wbc_status = "Normal"
     else:
-        st.error("High WBC → Infection")
-        report_status = "Issue"
+        wbc_status = "High"
 
     # Platelets
     if platelets < 150000:
-        st.warning("Low Platelets → Dengue risk")
-        report_status = "Issue"
+        plt_status = "Low"
     elif platelets <= 450000:
-        st.success("Platelets Normal")
+        plt_status = "Normal"
     else:
-        st.error("High Platelets")
-        report_status = "Issue"
+        plt_status = "High"
 
     # -----------------------------
-    # AI CHATBOT RESPONSE
+    # REPORT TEXT
     # -----------------------------
-    st.subheader("🤖 AI Health Assistant")
+    report = f"""
+**Hemoglobin (Hb) - {hb} g/dL ({hb_status})**  
+Yeh khoon mein oxygen le janay wali protein hai.  
+Agar yeh 12 se kam ho to anemia ho sakta hai.  
+Reference: Male (13.5–17.5), Female (12.0–15.5)
 
-    user_query = st.text_input("Ask something (e.g. Mera report theek hai?)")
+---
 
-    if user_query:
-        if "theek" in user_query.lower():
-            if report_status == "Normal":
-                st.success("✅ Aapka report bilkul normal lag raha hai.")
-            else:
-                st.warning("⚠️ Report mein kuch issues hain, doctor se consult karein.")
+**RBC Count - {rbc} million/µL ({rbc_status})**  
+Yeh surkh khoon ke khaliye hain.  
+Reference: Male (4.5–5.5), Female (4.0–5.0)
 
-        elif "hemoglobin" in user_query.lower():
-            st.info("Hemoglobin oxygen carry karta hai. Low ho to anemia hota hai.")
+---
 
-        elif "platelets" in user_query.lower():
-            st.info("Platelets clotting ke liye zaroori hain. Dengue mein kam ho jate hain.")
+**WBC Count - {wbc} cells/µL ({wbc_status})**  
+Yeh immune system ka hissa hain. Infection mein barh jate hain.  
+Reference: 4,500–11,000
 
-        else:
-            st.info("🤖 General advice: Apni report doctor ko bhi dikhaein.")
+---
+
+**Platelets - {platelets}/cumm ({plt_status})**  
+Yeh clotting mein madad karte hain.  
+Reference: 150,000–450,000
+"""
+
+    st.markdown(report)
 
     # -----------------------------
-    # GRAPHS (HEALTH VISUALIZATION)
+    # IMPORTANT NOTES
     # -----------------------------
-    st.subheader("📊 Health Graph")
+    st.subheader("⚠️ Important Notes")
 
-    labels = ["Hb", "RBC", "WBC", "Platelets"]
-    values = [hb, rbc, wbc, platelets]
+    st.markdown("""
+- Low Platelets (<150,000): Dengue risk  
+- Low Hemoglobin (<12): Iron deficiency  
+- High WBC (>11,000): Infection sign  
+""")
+
+    # FINAL RESULT
+    if hb_status=="Normal" and rbc_status=="Normal" and wbc_status=="Normal" and plt_status=="Normal":
+        st.success("✅ Note: Yeh report bilkul normal hai.")
+    else:
+        st.warning("⚠️ Note: Kuch values abnormal hain. Doctor se consult karein.")
+
+    # -----------------------------
+    # GRAPH
+    # -----------------------------
+    st.subheader("📊 Graph")
 
     fig, ax = plt.subplots()
-    ax.bar(labels, values)
-    ax.set_title("Your Health Values")
-
+    ax.bar(["Hb","RBC","WBC","Platelets"], [hb, rbc, wbc, platelets])
     st.pyplot(fig)
 
     # -----------------------------
-    # BLOOD GROUP PREDICTION
+    # BLOOD GROUP
     # -----------------------------
-    if hb > 0 and rbc > 0 and wbc > 0 and platelets > 0:
+    if hb>0 and rbc>0 and wbc>0 and platelets>0:
         pred = model.predict([[hb, rbc, wbc, platelets]])
         st.subheader("🧬 Predicted Blood Group")
         st.success(pred[0])
+
+# -----------------------------
+# CHATBOT
+# -----------------------------
+st.subheader("🤖 AI Health Assistant")
+
+query = st.text_input("Ask: (e.g. Mera report theek hai?)")
+
+if st.button("Ask"):
+
+    if query:
+        q = query.lower()
+
+        if "theek" in q or "report" in q:
+            st.write("Agar sab values normal hain to report theek hai.")
+
+        elif "hb" in q or "hemoglobin" in q:
+            st.write("Hemoglobin oxygen carry karta hai. Low ho to anemia hota hai.")
+
+        elif "platelets" in q:
+            st.write("Platelets clotting ke liye hotay hain.")
+
+        elif "wbc" in q:
+            st.write("WBC infection se fight karta hai.")
+
+        else:
+            st.write("General advice: Doctor se consult karein.")
