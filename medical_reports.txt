@@ -1,0 +1,11 @@
+Patient: Ali
+Hb: 13.5 RBC: 5.2 WBC: 7000 Platelets: 250000
+Likely Blood Group: A+
+
+Patient: Sara
+Hb: 11.2 RBC: 4.1 WBC: 9000 Platelets: 180000
+Likely Blood Group: B-
+
+Patient: Ahmed
+Hb: 14.1 RBC: 5.6 WBC: 6500 Platelets: 270000
+Likely Blood Group: O+
