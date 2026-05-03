@@ -122,7 +122,7 @@ if st.button("Analyze Report"):
         st.success(f"Your Blood Group: {pred[0]}")
 
 # -----------------------------
-# 🤖 REAL AI CHATBOT (FIXED + SMART)
+# 🤖 REAL AI CHATBOT
 # -----------------------------
 st.subheader("🤖 AI Health Assistant")
 
@@ -155,7 +155,10 @@ Question: {question}
 
     except Exception as e:
         return f"Error in AI response: {str(e)}"
-       if st.button("Ask AI"):
+
+
+# 👉 THIS MUST BE OUTSIDE FUNCTION (IMPORTANT)
+if st.button("Ask AI"):
     if query:
         with st.spinner("AI soch raha hai... 🤖"):
             answer = ask_ai(query)
