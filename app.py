@@ -155,7 +155,8 @@ Question: {question}
 
     except Exception as e:
         return f"Error in AI response: {str(e)}"
-        if st.button("Ask AI"):
+       if st.button("Ask AI"):
     if query:
-        answer = ask_ai(query)
-        st.success(answer)
+        with st.spinner("AI soch raha hai... 🤖"):
+            answer = ask_ai(query)
+            st.success(answer)
