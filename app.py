@@ -1,12 +1,18 @@
 
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
+from openai import OpenAI
 
 st.set_page_config(page_title="AI Blood Report System", layout="centered")
 
 st.title("🧠 AI Blood Report Analyzer + Blood Group Predictor")
+
+# -----------------------------
+# OPENAI CLIENT (REAL AI)
+# -----------------------------
+client = OpenAI(api_key="YOUR_API_KEY_HERE")
 
 # -----------------------------
 # MODEL (SAFE LOAD)
@@ -51,38 +57,13 @@ def get_status(value, low, high):
 # -----------------------------
 if st.button("Analyze Report"):
 
-    # STATUS CALCULATION
     hb_status = get_status(hb, 12, 17.5)
     rbc_status = get_status(rbc, 4, 5.5)
     wbc_status = get_status(wbc, 4500, 11000)
     plt_status = get_status(platelets, 150000, 450000)
 
-    # REPORT TEXT
     # -----------------------------
-    report = f"""
-**Hemoglobin (Hb) - {hb} g/dL ({hb_status})**  
-Yeh khoon mein oxygen le janay wali protein hai.  
-Agar yeh 12 se kam ho to anemia ho sakta hai.  
-Reference: Male (13.5–17.5), Female (12.0–15.5)
-
----
-
-**RBC Count - {rbc} million/µL ({rbc_status})**  
-Yeh surkh khoon ke khaliye hain.  
-Reference: Male (4.5–5.5), Female (4.0–5.0)
-**WBC Count - {wbc} cells/µL ({wbc_status})**  
-Yeh immune system ka hissa hain. Infection mein barh jate hain.  
-Reference: 4,500–11,000
-
----
-
-**Platelets - {platelets}/cumm ({plt_status})**  
-Yeh clotting mein madad karte hain.  
-Reference: 150,000–450,000
-"""
-
-    # -----------------------------
-    # CLEAN REPORT UI
+    # REPORT UI
     # -----------------------------
     st.subheader("📄 Blood Test Report")
 
@@ -96,7 +77,7 @@ Reference: 150,000–450,000
     show_line("Platelets", platelets, plt_status)
 
     # -----------------------------
-    # SUMMARY LOGIC
+    # FINAL SUMMARY
     # -----------------------------
     issues = []
 
@@ -115,13 +96,13 @@ Reference: 150,000–450,000
     st.subheader("🧾 Final Assessment")
 
     if len(issues) == 0:
-        st.success("✅ All values are within normal range. Report is healthy.")
+        st.success("✅ All values are normal. Report is healthy.")
     elif len(issues) == 1:
-        st.warning(f"⚠️ Minor issue detected: {issues[0]}")
+        st.warning(f"⚠️ Minor issue: {issues[0]}")
     elif len(issues) == 2:
         st.warning(f"⚠️ Multiple issues: {', '.join(issues)}")
     else:
-        st.error(f"🚨 Serious concern: {', '.join(issues)}")
+        st.error(f"🚨 Serious condition: {', '.join(issues)}")
 
     # -----------------------------
     # GRAPH
@@ -133,7 +114,7 @@ Reference: 150,000–450,000
     st.pyplot(fig)
 
     # -----------------------------
-    # BLOOD GROUP PREDICTION (SAFE)
+    # BLOOD GROUP PREDICTION
     # -----------------------------
     if hb > 0 and rbc > 0 and wbc > 0 and platelets > 0:
         pred = model.predict([[hb, rbc, wbc, platelets]])
@@ -141,28 +122,38 @@ Reference: 150,000–450,000
         st.success(f"Your Blood Group: {pred[0]}")
 
 # -----------------------------
-# CHATBOT (IMPROVED)
+# 🤖 REAL AI CHATBOT (FIXED + SMART)
 # -----------------------------
 st.subheader("🤖 AI Health Assistant")
 
-query = st.text_input("Ask your question")
+query = st.text_input("Ask anything about your report or health")
+
+def ask_ai(question):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a medical assistant. Explain blood reports and health questions in simple, clear, safe language."
+            },
+            {
+                "role": "user",
+                "content": f"""
+Patient Report:
+Hemoglobin: {hb}
+RBC: {rbc}
+WBC: {wbc}
+Platelets: {platelets}
+
+Question: {question}
+"""
+            }
+        ]
+    )
+    return response.choices[0].message.content
 
 if st.button("Ask AI"):
-
     if query:
-        q = query.lower()
-
-        if "report" in q or "theek" in q:
-            st.info("If all values are normal, your report is healthy.")
-
-        elif "hemoglobin" in q or "hb" in q:
-            st.info("Hemoglobin carries oxygen in blood. Low level indicates anemia.")
-
-        elif "platelets" in q:
-            st.info("Platelets help in blood clotting.")
-
-        elif "wbc" in q:
-            st.info("WBC protects body from infections.")
-
-        else:
-            st.warning("Please consult a doctor for detailed medical advice.")
+        with st.spinner("AI soch raha hai... 🤖"):
+            answer = ask_ai(query)
+            st.success(answer)
