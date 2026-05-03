@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
-from openai import OpenAI
+from groq import Groq
 
 st.set_page_config(page_title="AI Blood Report System", layout="centered")
 
@@ -12,7 +12,7 @@ st.title("🧠 AI Blood Report Analyzer + Blood Group Predictor")
 # -----------------------------
 # OPENAI CLIENT (REAL AI)
 # -----------------------------
-client = OpenAI(api_key="YOUR_API_KEY_HERE")
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # -----------------------------
 # MODEL (SAFE LOAD)
@@ -130,11 +130,11 @@ query = st.text_input("Ask anything about your report or health")
 
 def ask_ai(question):
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="llama3-8b-8192",
         messages=[
             {
                 "role": "system",
-                "content": "You are a medical assistant. Explain blood reports and health questions in simple, clear, safe language."
+                "content": "You are a medical assistant. Explain blood reports in simple, safe, clear language."
             },
             {
                 "role": "user",
