@@ -129,16 +129,17 @@ st.subheader("🤖 AI Health Assistant")
 query = st.text_input("Ask anything about your report or health")
 
 def ask_ai(question):
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a medical assistant. Explain blood reports in simple, safe, clear language."
-            },
-            {
-                "role": "user",
-                "content": f"""
+    try:
+        response = client.chat.completions.create(
+            model="llama3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful medical assistant. Explain in simple language."
+                },
+                {
+                    "role": "user",
+                    "content": f"""
 Patient Report:
 Hemoglobin: {hb}
 RBC: {rbc}
@@ -147,13 +148,12 @@ Platelets: {platelets}
 
 Question: {question}
 """
-            }
-        ]
-    )
-    return response.choices[0].message.content
+                }
+            ]
+        )
+        return response.choices[0].message.content
 
-if st.button("Ask AI"):
-    if query:
-        with st.spinner("AI soch raha hai... 🤖"):
+    except Exception as e:
+        return f"Error in AI response: {str(e)}"
             answer = ask_ai(query)
             st.success(answer)
