@@ -57,6 +57,30 @@ if st.button("Analyze Report"):
     wbc_status = get_status(wbc, 4500, 11000)
     plt_status = get_status(platelets, 150000, 450000)
 
+    # REPORT TEXT
+    # -----------------------------
+    report = f"""
+**Hemoglobin (Hb) - {hb} g/dL ({hb_status})**  
+Yeh khoon mein oxygen le janay wali protein hai.  
+Agar yeh 12 se kam ho to anemia ho sakta hai.  
+Reference: Male (13.5–17.5), Female (12.0–15.5)
+
+---
+
+**RBC Count - {rbc} million/µL ({rbc_status})**  
+Yeh surkh khoon ke khaliye hain.  
+Reference: Male (4.5–5.5), Female (4.0–5.0)
+**WBC Count - {wbc} cells/µL ({wbc_status})**  
+Yeh immune system ka hissa hain. Infection mein barh jate hain.  
+Reference: 4,500–11,000
+
+---
+
+**Platelets - {platelets}/cumm ({plt_status})**  
+Yeh clotting mein madad karte hain.  
+Reference: 150,000–450,000
+"""
+
     # -----------------------------
     # CLEAN REPORT UI
     # -----------------------------
