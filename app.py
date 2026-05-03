@@ -9,160 +9,136 @@ st.set_page_config(page_title="AI Blood Report System", layout="centered")
 st.title("🧠 AI Blood Report Analyzer + Blood Group Predictor")
 
 # -----------------------------
-# MODEL
+# MODEL (SAFE LOAD)
 # -----------------------------
-df = pd.read_csv("lab_dataset.csv")
+@st.cache_data
+def load_model():
+    df = pd.read_csv("lab_dataset.csv")
 
-X = df.drop("blood_group", axis=1)
-y = df["blood_group"]
+    X = df.drop("blood_group", axis=1)
+    y = df["blood_group"]
 
-model = RandomForestClassifier()
-model.fit(X, y)
+    model = RandomForestClassifier()
+    model.fit(X, y)
+
+    return model
+
+model = load_model()
 
 # -----------------------------
 # INPUT
 # -----------------------------
 st.header("🔢 Enter Your Lab Values")
 
-hb = st.number_input("Hemoglobin (g/dL)")
-rbc = st.number_input("RBC Count (million/µL)")
-wbc = st.number_input("WBC Count (cells/µL)")
-platelets = st.number_input("Platelets (/cumm)")
+hb = st.number_input("Hemoglobin (g/dL)", min_value=0.0)
+rbc = st.number_input("RBC Count (million/µL)", min_value=0.0)
+wbc = st.number_input("WBC Count (cells/µL)", min_value=0.0)
+platelets = st.number_input("Platelets (/cumm)", min_value=0.0)
+
+# -----------------------------
+# STATUS FUNCTION
+# -----------------------------
+def get_status(value, low, high):
+    if value < low:
+        return "Low"
+    elif value <= high:
+        return "Normal"
+    else:
+        return "High"
 
 # -----------------------------
 # ANALYZE BUTTON
 # -----------------------------
 if st.button("Analyze Report"):
 
-    st.subheader("📊 Results ki Tafseel (Interpretation)")
-
-    # Hemoglobin
-    if hb < 12:
-        hb_status = "Low"
-    elif hb <= 17.5:
-        hb_status = "Normal"
-    else:
-        hb_status = "High"
-
-    # RBC
-    if rbc < 4:
-        rbc_status = "Low"
-    elif rbc <= 5.5:
-        rbc_status = "Normal"
-    else:
-        rbc_status = "High"
-
-    # WBC
-    if wbc < 4500:
-        wbc_status = "Low"
-    elif wbc <= 11000:
-        wbc_status = "Normal"
-    else:
-        wbc_status = "High"
-
-    # Platelets
-    if platelets < 150000:
-        plt_status = "Low"
-    elif platelets <= 450000:
-        plt_status = "Normal"
-    else:
-        plt_status = "High"
+    # STATUS CALCULATION
+    hb_status = get_status(hb, 12, 17.5)
+    rbc_status = get_status(rbc, 4, 5.5)
+    wbc_status = get_status(wbc, 4500, 11000)
+    plt_status = get_status(platelets, 150000, 450000)
 
     # -----------------------------
-    # REPORT TEXT
+    # CLEAN REPORT UI
     # -----------------------------
-    report = f"""
-**Hemoglobin (Hb) - {hb} g/dL ({hb_status})**  
-Yeh khoon mein oxygen le janay wali protein hai.  
+    st.subheader("📄 Blood Test Report")
 
-**RBC Count - {rbc} million/µL ({rbc_status})**  
+    def show_line(name, value, status):
+        color = "🟢" if status == "Normal" else "🟡" if status == "Low" else "🔴"
+        st.markdown(f"**{name}:** {value} → {color} {status}")
 
-**WBC Count - {wbc} cells/µL ({wbc_status})**  
-
-**Platelets - {platelets}/cumm ({plt_status})**  
-"""
-
-    st.markdown(report)
+    show_line("Hemoglobin", hb, hb_status)
+    show_line("RBC Count", rbc, rbc_status)
+    show_line("WBC Count", wbc, wbc_status)
+    show_line("Platelets", platelets, plt_status)
 
     # -----------------------------
-    # IMPORTANT NOTES
+    # SUMMARY LOGIC
     # -----------------------------
-    st.subheader("⚠️ Important Notes")
+    issues = []
 
-    st.markdown("""
-- Low Platelets (<150,000): Dengue risk  
-- Low Hemoglobin (<12): Iron deficiency  
-- High WBC (>11,000): Infection sign  
-""")
+    if hb_status != "Normal":
+        issues.append(f"Hemoglobin ({hb_status})")
+
+    if rbc_status != "Normal":
+        issues.append(f"RBC ({rbc_status})")
+
+    if wbc_status != "Normal":
+        issues.append(f"WBC ({wbc_status})")
+
+    if plt_status != "Normal":
+        issues.append(f"Platelets ({plt_status})")
+
+    st.subheader("🧾 Final Assessment")
+
+    if len(issues) == 0:
+        st.success("✅ All values are within normal range. Report is healthy.")
+    elif len(issues) == 1:
+        st.warning(f"⚠️ Minor issue detected: {issues[0]}")
+    elif len(issues) == 2:
+        st.warning(f"⚠️ Multiple issues: {', '.join(issues)}")
+    else:
+        st.error(f"🚨 Serious concern: {', '.join(issues)}")
 
     # -----------------------------
     # GRAPH
     # -----------------------------
-    st.subheader("📊 Graph")
+    st.subheader("📊 Visual Report")
 
     fig, ax = plt.subplots()
     ax.bar(["Hb","RBC","WBC","Platelets"], [hb, rbc, wbc, platelets])
     st.pyplot(fig)
 
     # -----------------------------
-    # BLOOD GROUP
+    # BLOOD GROUP PREDICTION (SAFE)
     # -----------------------------
-    if hb>0 and rbc>0 and wbc>0 and platelets>0:
+    if hb > 0 and rbc > 0 and wbc > 0 and platelets > 0:
         pred = model.predict([[hb, rbc, wbc, platelets]])
         st.subheader("🧬 Predicted Blood Group")
-        st.success(pred[0])
-
-    # -----------------------------
-    # SMART FINAL SUMMARY (FIXED)
-    # -----------------------------
-    issues = []
-
-    if hb_status != "Normal":
-        issues.append(f"Hemoglobin {hb_status}")
-
-    if rbc_status != "Normal":
-        issues.append(f"RBC {rbc_status}")
-
-    if wbc_status != "Normal":
-        issues.append(f"WBC {wbc_status}")
-
-    if plt_status != "Normal":
-        issues.append(f"Platelets {plt_status}")
-
-    st.subheader("🧾 Final Assessment")
-
-    if len(issues) == 0:
-        st.success("✅ Aapki tamam values normal range mein hain. Report theek hai.")
-    elif len(issues) == 1:
-        st.warning(f"⚠️ Sirf ek issue: {issues[0]}")
-    elif len(issues) == 2:
-        st.warning(f"⚠️ Multiple issues: {', '.join(issues)}")
-    else:
-        st.error(f"🚨 Serious condition: {', '.join(issues)}")
+        st.success(f"Your Blood Group: {pred[0]}")
 
 # -----------------------------
-# CHATBOT
+# CHATBOT (IMPROVED)
 # -----------------------------
 st.subheader("🤖 AI Health Assistant")
 
-query = st.text_input("Ask: (e.g. Mera report theek hai?)")
+query = st.text_input("Ask your question")
 
-if st.button("Ask"):
+if st.button("Ask AI"):
 
     if query:
         q = query.lower()
 
-        if "theek" in q or "report" in q:
-            st.write("Agar sab values normal hain to report theek hai.")
+        if "report" in q or "theek" in q:
+            st.info("If all values are normal, your report is healthy.")
 
-        elif "hb" in q or "hemoglobin" in q:
-            st.write("Hemoglobin oxygen carry karta hai.")
+        elif "hemoglobin" in q or "hb" in q:
+            st.info("Hemoglobin carries oxygen in blood. Low level indicates anemia.")
 
         elif "platelets" in q:
-            st.write("Platelets clotting ke liye hotay hain.")
+            st.info("Platelets help in blood clotting.")
 
         elif "wbc" in q:
-            st.write("WBC infection se fight karta hai.")
+            st.info("WBC protects body from infections.")
 
         else:
-            st.write("Doctor se consult karein.")
+            st.warning("Please consult a doctor for detailed medical advice.")
