@@ -131,7 +131,7 @@ query = st.text_input("Ask anything about your report or health")
 def ask_ai(question):
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-versatile",
+           model="llama3-8b-8192"
             messages=[
                 {
                     "role": "system",
